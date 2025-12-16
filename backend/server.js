@@ -67,19 +67,13 @@ You are an AI assistant answering customer questions for a business.
 RULES:
 - Use ONLY the provided business information.
 - If the question cannot be answered with confidence, reply exactly: FALLBACK_REQUIRED.
-
-ANSWER STYLE:
 - Write in full, professional sentences.
-- Keep answers clear, calm, and business-appropriate.
-- When mentioning multiple facts, separate them using line breaks.
-- Avoid long paragraphs.
-- Do NOT use bullet points, symbols, headings, or formatting.
-- Do NOT repeat the question.
+- Separate multiple facts using line breaks.
           `
         },
         {
           role: "user",
-          content: `BUSINESS INFORMATION:\n${business.info}\n\nQUESTION:\n${question}`
+          content: \`BUSINESS INFORMATION:\n\${business.info}\n\nQUESTION:\n\${question}\`
         }
       ]
     });
@@ -105,10 +99,7 @@ app.post("/api/fallback", async (req, res) => {
   try {
     const { businessId, email, question } = req.body;
     const business = businesses[businessId];
-
-    if (!business) {
-      return res.json({ success: false });
-    }
+    if (!business) return res.json({ success: false });
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -122,13 +113,7 @@ app.post("/api/fallback", async (req, res) => {
       to: business.email,
       from: process.env.EMAIL_USER,
       subject: "New customer question from ANSWERO",
-      text: `
-Customer email:
-${email}
-
-Question:
-${question}
-      `
+      text: `Customer email:\n${email}\n\nQuestion:\n${question}`
     });
 
     res.json({ success: true });
@@ -156,6 +141,20 @@ app.post("/admin/add-business", requireAdmin, (req, res) => {
   };
 
   saveBusinesses();
+  res.json({ success: true });
+});
+
+/* 🔴 DELETE BUSINESS (NEW) */
+app.post("/admin/delete-business", requireAdmin, (req, res) => {
+  const { id } = req.body;
+
+  if (!businesses[id]) {
+    return res.json({ success: false });
+  }
+
+  delete businesses[id];
+  saveBusinesses();
+
   res.json({ success: true });
 });
 

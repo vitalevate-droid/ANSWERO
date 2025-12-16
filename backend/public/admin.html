@@ -67,6 +67,18 @@
       margin-top:6px
     }
 
+    .delete-btn{
+      margin-top:8px;
+      background:#fee2e2;
+      color:#991b1b;
+      border:none;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer
+    }
+
     label{
       font-weight:600;
       color:#4b5563;
@@ -133,27 +145,25 @@
 
   <div class="grid">
 
-    <!-- BUSINESS LIST -->
     <div class="card">
       <h3>Your Businesses</h3>
       <div id="list"></div>
     </div>
 
-    <!-- FORM -->
     <div class="card">
       <h3 id="formTitle">Add / Edit Business</h3>
 
       <label>Business ID</label>
-      <input id="id" placeholder="e.g. coffee-shop-123">
+      <input id="id">
 
       <label>Business Name</label>
-      <input id="name" placeholder="e.g. Sunset Coffee">
+      <input id="name">
 
       <label>Business Email</label>
-      <input id="email" placeholder="contact@business.com">
+      <input id="email">
 
-      <label>Business Information (used by AI)</label>
-      <textarea id="info" placeholder="Opening hours, services, location, policies…"></textarea>
+      <label>Business Information</label>
+      <textarea id="info"></textarea>
 
       <div class="actions">
         <button onclick="save()">Save Business</button>
@@ -181,10 +191,13 @@ async function load(){
   Object.entries(d).forEach(([id,b])=>{
     const c = document.createElement("div");
     c.className = "business-card";
+
     c.innerHTML = `
       <h4>${b.name || id}</h4>
-      <span>${id}</span>
+      <span>${id}</span><br>
+      <button class="delete-btn">Delete</button>
     `;
+
     c.onclick = ()=>{
       idInput.value = id;
       name.value = b.name || "";
@@ -193,6 +206,24 @@ async function load(){
       formTitle.innerText = "Edit Business";
       msg.innerText = "";
     };
+
+    c.querySelector(".delete-btn").onclick = async (e)=>{
+      e.stopPropagation();
+
+      if(!confirm(\`Delete "\${b.name || id}"?\`)) return;
+
+      await fetch("/admin/delete-business", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.value
+        },
+        body: JSON.stringify({ id })
+      });
+
+      load();
+    };
+
     list.appendChild(c);
   });
 }
@@ -207,11 +238,6 @@ function newBusiness(){
 }
 
 async function save(){
-  if(!idInput.value){
-    alert("Business ID is required.");
-    return;
-  }
-
   await fetch("/admin/add-business", {
     method: "POST",
     headers: {
