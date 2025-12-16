@@ -6,97 +6,121 @@
 
     if (!BUSINESS_ID) return;
 
-    /* ===============================
-       STYLES
-    =============================== */
     const style = document.createElement("style");
     style.innerHTML = `
         .answero-wrapper {
-            display: flex;
-            justify-content: center;
-            width: 100%;
+            display:flex;
+            justify-content:center;
+            width:100%;
         }
 
         .answero-container {
-            max-width: 520px;
-            width: 100%;
-            margin: 40px 0;
-            font-family: Arial, sans-serif;
-            position: relative;
+            max-width:520px;
+            width:100%;
+            margin:40px 0;
+            font-family:Arial,sans-serif;
+            position:relative;
         }
 
-        /* INFO BUTTON */
         .answero-info-btn {
-            position: absolute;
-            top: -18px;
-            right: 6px;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 1px solid #ccc;
-            background: #fff;
-            color: #7c3aed;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position:absolute;
+            top:-18px;
+            right:6px;
+            width:22px;
+            height:22px;
+            border-radius:50%;
+            border:1.5px solid #999;
+            background:#fff;
+            color:#7c3aed;
+            font-weight:700;
+            font-size:13px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
         }
 
-        .answero-info-btn:hover {
-            background: #f5f3ff;
-        }
-
-        /* SEARCH */
         .answero-search {
-            display: flex;
-            background: #fff;
-            border-radius: 999px;
-            padding: 6px;
-            box-shadow: 0 10px 30px rgba(124,58,237,.18);
+            display:flex;
+            background:#fff;
+            border-radius:999px;
+            padding:6px;
+            box-shadow:0 10px 30px rgba(124,58,237,.18);
         }
 
         .answero-search input {
-            flex: 1;
-            border: none;
-            padding: 14px 16px;
-            font-size: 14px;
-            outline: none;
+            flex:1;
+            border:none;
+            padding:14px 16px;
+            font-size:14px;
+            outline:none;
         }
 
         .answero-search button {
-            background: #7c3aed;
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
+            background:#7c3aed;
+            color:#fff;
+            border:none;
+            border-radius:999px;
+            padding:10px 20px;
+            font-size:13px;
+            font-weight:600;
+            cursor:pointer;
         }
 
         #answero-answer {
-            background: #fff;
-            margin-top: 16px;
-            padding: 22px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.1);
-            line-height: 1.5;
+            background:#fff;
+            margin-top:16px;
+            padding:22px;
+            border-radius:16px;
+            box-shadow:0 8px 24px rgba(0,0,0,.1);
+            line-height:1.6;
+        }
+
+        .answero-branding {
+            margin-top:16px;
+            text-align:center;
+            font-size:11px;
+            color:#777;
+            letter-spacing:.5px;
+        }
+
+        .answero-branding span {
+            color:#7c3aed;
+            font-weight:800;
+        }
+
+        .answero-fallback input {
+            width:100%;
+            padding:12px;
+            margin-top:12px;
+            border-radius:8px;
+            border:1px solid #ddd;
+        }
+
+        .answero-fallback button {
+            margin-top:12px;
+            width:100%;
+            padding:12px;
+            border-radius:999px;
+            background:#7c3aed;
+            border:none;
+            color:white;
+            font-weight:600;
+            cursor:pointer;
         }
 
         .thinking {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
+            display:flex;
+            justify-content:center;
+            gap:8px;
         }
 
         .thinking span {
-            width: 10px;
-            height: 10px;
-            background: #7c3aed;
-            border-radius: 50%;
-            animation: pulse 1.4s infinite ease-in-out both;
+            width:10px;
+            height:10px;
+            background:#7c3aed;
+            border-radius:50%;
+            animation:pulse 1.4s infinite;
         }
 
         @keyframes pulse {
@@ -104,91 +128,56 @@
             40%{transform:scale(1)}
         }
 
-        .answero-branding {
-            margin-top: 14px;
-            text-align: center;
-            font-size: 11px;
-            color: #888;
-        }
-
-        .answero-branding span {
-            color: #7c3aed;
-            font-weight: 700;
-        }
-
-        /* MODAL */
         .answero-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
         }
 
         .answero-modal-content {
-            background: #fff;
-            max-width: 520px;
-            padding: 26px;
-            border-radius: 16px;
+            background:#fff;
+            max-width:540px;
+            padding:28px;
+            border-radius:18px;
+            font-size:14px;
+            line-height:1.7;
         }
 
         .answero-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
+            display:flex;
+            gap:10px;
+            margin-bottom:16px;
         }
 
         .answero-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 8px;
-            background: #f3f3f3;
-            cursor: pointer;
-            color: #555;
+            flex:1;
+            padding:10px;
+            text-align:center;
+            border-radius:8px;
+            background:#f3f3f3;
+            cursor:pointer;
+            font-weight:600;
+            font-size:13px;
         }
 
         .answero-tab.active {
-            background: #ede9fe;
-            color: #7c3aed;
+            background:#ede9fe;
+            color:#7c3aed;
         }
 
         .answero-close {
-            text-align: right;
-            font-size: 13px;
-            color: #666;
-            cursor: pointer;
-        }
-
-        .answero-fallback input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-
-        .answero-fallback button {
-            margin-top: 12px;
-            padding: 12px;
-            width: 100%;
-            border-radius: 999px;
-            border: none;
-            background: #7c3aed;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
+            text-align:right;
+            font-size:13px;
+            cursor:pointer;
+            color:#555;
         }
     `;
     document.head.appendChild(style);
 
-    /* ===============================
-       HTML
-    =============================== */
     const wrapper = document.createElement("div");
     wrapper.className = "answero-wrapper";
 
@@ -222,11 +211,27 @@
             </div>
 
             <div id="legal">
-                <p>We comply with South Africa’s POPIA. Email addresses are used strictly to forward enquiries to the business and are not stored or reused.</p>
+                <p>
+                ANSWERO operates in compliance with South Africa’s Protection of Personal Information Act (POPIA).
+                Personal information such as email addresses is collected solely for the purpose of facilitating
+                direct communication between the customer and the relevant business.
+                </p>
+                <p>
+                No personal data is stored for marketing, profiling, or resale purposes.
+                Information is processed transiently and only where necessary to complete the requested interaction.
+                </p>
             </div>
 
             <div id="ai" style="display:none">
-                <p>Responses are generated by a specialised AI system configured exclusively for this business and constrained to its provided information.</p>
+                <p>
+                This service uses an advanced artificial intelligence system configured specifically for this business.
+                The system is constrained to information supplied directly by the business and is designed to provide
+                clear, relevant responses where sufficient confidence exists.
+                </p>
+                <p>
+                Where certainty cannot be established, the system defers the enquiry to the business to ensure accuracy,
+                accountability, and a high-quality customer experience.
+                </p>
             </div>
         </div>
     `;
@@ -259,9 +264,9 @@
         answerBox.innerHTML = `<div class="thinking"><span></span><span></span><span></span></div>`;
 
         const r = await fetch(`${API_BASE}/api/ask`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ businessId: BUSINESS_ID, question: q })
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body:JSON.stringify({ businessId: BUSINESS_ID, question:q })
         });
 
         const d = await r.json();
@@ -276,12 +281,12 @@
             `;
             container.querySelector("#answero-send").onclick = async () => {
                 await fetch(`${API_BASE}/api/fallback`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        businessId: BUSINESS_ID,
-                        email: container.querySelector("#answero-email").value,
-                        question: q
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json" },
+                    body:JSON.stringify({
+                        businessId:BUSINESS_ID,
+                        email:container.querySelector("#answero-email").value,
+                        question:q
                     })
                 });
                 answerBox.innerHTML = "Thank you. The business will contact you.";
