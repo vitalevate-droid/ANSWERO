@@ -3,7 +3,7 @@
     const scriptTag = document.currentScript;
     const BUSINESS_ID = scriptTag.getAttribute("data-business-id");
 
-    const API_BASE = "https://YOUR_RENDER_URL.onrender.com";
+    const API_BASE = "https://answero.onrender.com";
 
     if (!BUSINESS_ID) {
         console.error("ANSWERO: Missing data-business-id");
