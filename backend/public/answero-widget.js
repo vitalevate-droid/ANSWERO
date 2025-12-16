@@ -2,13 +2,9 @@
 
     const scriptTag = document.currentScript;
     const BUSINESS_ID = scriptTag.getAttribute("data-business-id");
-
     const API_BASE = "https://answero.onrender.com";
 
-    if (!BUSINESS_ID) {
-        console.error("ANSWERO: Missing data-business-id");
-        return;
-    }
+    if (!BUSINESS_ID) return;
 
     /* ===============================
        STYLES
@@ -19,7 +15,6 @@
             display: flex;
             justify-content: center;
             width: 100%;
-            position: relative;
         }
 
         .answero-container {
@@ -30,6 +25,7 @@
             position: relative;
         }
 
+        /* INFO BUTTON */
         .answero-info-btn {
             position: absolute;
             top: -18px;
@@ -37,17 +33,22 @@
             width: 22px;
             height: 22px;
             border-radius: 50%;
-            border: 1px solid #7c3aed;
-            background: #7c3aed;
-            color: #fff;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #7c3aed;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        .answero-info-btn:hover {
+            background: #f5f3ff;
+        }
+
+        /* SEARCH */
         .answero-search {
             display: flex;
             background: #fff;
@@ -66,13 +67,13 @@
 
         .answero-search button {
             background: #7c3aed;
-            color: white;
+            color: #fff;
             border: none;
             border-radius: 999px;
-            padding: 11px 22px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 10px 20px;
             font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         #answero-answer {
@@ -99,8 +100,8 @@
         }
 
         @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+            0%,80%,100%{transform:scale(0)}
+            40%{transform:scale(1)}
         }
 
         .answero-branding {
@@ -108,22 +109,67 @@
             text-align: center;
             font-size: 11px;
             color: #888;
-            letter-spacing: 0.4px;
         }
 
         .answero-branding span {
+            color: #7c3aed;
             font-weight: 700;
+        }
+
+        /* MODAL */
+        .answero-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .answero-modal-content {
+            background: #fff;
+            max-width: 520px;
+            padding: 26px;
+            border-radius: 16px;
+        }
+
+        .answero-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .answero-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: #f3f3f3;
+            cursor: pointer;
+            color: #555;
+        }
+
+        .answero-tab.active {
+            background: #ede9fe;
             color: #7c3aed;
         }
 
-        /* FALLBACK */
+        .answero-close {
+            text-align: right;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+        }
+
         .answero-fallback input {
             width: 100%;
             padding: 12px;
             margin-top: 12px;
             border-radius: 8px;
             border: 1px solid #ddd;
-            font-size: 14px;
         }
 
         .answero-fallback button {
@@ -136,50 +182,6 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        /* MODAL */
-        .answero-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .answero-modal-content {
-            background: #fff;
-            max-width: 520px;
-            padding: 26px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .answero-tabs {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .answero-tab {
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            color: #777;
-        }
-
-        .answero-tab.active {
-            color: #7c3aed;
-        }
-
-        .answero-close {
-            text-align: right;
-            font-size: 13px;
-            cursor: pointer;
-            color: #666;
         }
     `;
     document.head.appendChild(style);
@@ -220,28 +222,11 @@
             </div>
 
             <div id="legal">
-                <p>
-                    This service operates in accordance with South Africa’s
-                    Protection of Personal Information Act (POPIA).
-                    Email addresses are used strictly to forward customer enquiries
-                    to the relevant business.
-                </p>
-                <p>
-                    No personal data is retained, reused, or shared beyond the
-                    purpose of facilitating a direct response from the business.
-                </p>
+                <p>We comply with South Africa’s POPIA. Email addresses are used strictly to forward enquiries to the business and are not stored or reused.</p>
             </div>
 
             <div id="ai" style="display:none">
-                <p>
-                    Responses are generated using a specialised artificial intelligence
-                    system configured exclusively for this business.
-                </p>
-                <p>
-                    The system is constrained to business-provided information and
-                    is designed to defer to the business where certainty cannot
-                    be confidently established.
-                </p>
+                <p>Responses are generated by a specialised AI system configured exclusively for this business and constrained to its provided information.</p>
             </div>
         </div>
     `;
@@ -250,7 +235,6 @@
     wrapper.appendChild(container);
     scriptTag.parentNode.insertBefore(wrapper, scriptTag);
 
-    /* TAB LOGIC */
     modal.querySelectorAll(".answero-tab").forEach(tab => {
         tab.onclick = () => {
             modal.querySelectorAll(".answero-tab").forEach(t => t.classList.remove("active"));
@@ -264,53 +248,46 @@
     document.getElementById("answero-close").onclick = () => modal.style.display = "none";
 
     const input = container.querySelector("#answero-input");
-    const askBtn = container.querySelector("#answero-ask");
     const answerBox = container.querySelector("#answero-answer");
 
-    askBtn.onclick = async () => {
-        const question = input.value.trim();
-        if (!question) return;
+    container.querySelector("#answero-ask").onclick = async () => {
+        const q = input.value.trim();
+        if (!q) return;
 
         input.value = "";
         answerBox.style.display = "block";
         answerBox.innerHTML = `<div class="thinking"><span></span><span></span><span></span></div>`;
 
-        const res = await fetch(`${API_BASE}/api/ask`, {
+        const r = await fetch(`${API_BASE}/api/ask`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ businessId: BUSINESS_ID, question })
+            body: JSON.stringify({ businessId: BUSINESS_ID, question: q })
         });
 
-        const data = await res.json();
+        const d = await r.json();
 
-        if (data.fallback) {
+        if (d.fallback) {
             answerBox.innerHTML = `
                 <div class="answero-fallback">
                     <p><strong>We couldn’t confidently answer this.</strong></p>
-                    <p style="font-size:13px;color:#666;">
-                        Enter your email and the business will respond directly.
-                    </p>
                     <input id="answero-email" placeholder="Your email">
                     <button id="answero-send">Send</button>
                 </div>
             `;
-
             container.querySelector("#answero-send").onclick = async () => {
-                const email = container.querySelector("#answero-email").value;
-
                 await fetch(`${API_BASE}/api/fallback`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ businessId: BUSINESS_ID, email, question })
+                    body: JSON.stringify({
+                        businessId: BUSINESS_ID,
+                        email: container.querySelector("#answero-email").value,
+                        question: q
+                    })
                 });
-
-                answerBox.innerHTML = "Thank you. The business will contact you shortly.";
+                answerBox.innerHTML = "Thank you. The business will contact you.";
             };
-
-        } else if (data.answer) {
-            answerBox.innerHTML = data.answer;
         } else {
-            answerBox.innerHTML = "Something went wrong. Please try again.";
+            answerBox.innerHTML = d.answer || "Something went wrong.";
         }
     };
 
