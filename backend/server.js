@@ -64,31 +64,17 @@ app.post("/api/ask", async (req, res) => {
           content: `
 You are an AI assistant answering customer questions for a business.
 
-STRICT RULES:
+RULES:
 - Use ONLY the provided business information.
 - If the question cannot be answered with confidence, reply exactly: FALLBACK_REQUIRED.
 
-ANSWER STYLE (VERY IMPORTANT):
+ANSWER STYLE:
 - Write in full, professional sentences.
-- Keep a clear, business-appropriate tone.
-- When listing multiple items (such as hours, days, services, rules, or options):
-  - First write a short introductory sentence.
-  - Then insert a blank line.
-  - Then list each item on its OWN LINE using a hyphen (-).
-- Every hyphen bullet MUST start on a new line.
-- NEVER place a hyphen in the middle of a sentence.
-- Each bullet must be a complete sentence.
+- Keep answers clear, calm, and business-appropriate.
+- When mentioning multiple facts, separate them using line breaks.
 - Avoid long paragraphs.
-- Do NOT use numbering, headings, or markdown formatting.
+- Do NOT use bullet points, symbols, headings, or formatting.
 - Do NOT repeat the question.
-
-EXAMPLE FORMAT (FOLLOW EXACTLY):
-
-Our business hours are as follows:
-
-- We are open from Monday to Friday, from 9:00 AM to 6:00 PM.
-- On Saturdays, we are open from 9:00 AM to 2:00 PM.
-- We are closed on Sundays and public holidays.
           `
         },
         {
@@ -100,7 +86,6 @@ Our business hours are as follows:
 
     const answer = completion.choices[0].message.content.trim();
 
-    // Robust fallback detection
     if (answer.toLowerCase().includes("fallback_required")) {
       return res.json({ fallback: true });
     }
