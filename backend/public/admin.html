@@ -1,266 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ANSWERO Dashboard</title>
-  <meta charset="UTF-8" />
+  <title>ANSWERO Admin</title>
+  <meta charset="UTF-8">
   <style>
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:linear-gradient(135deg,#ede9fe,#fdfcff)
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background: #f5f3ff;
     }
 
-    header{
-      padding:30px 50px;
-      font-size:28px;
-      font-weight:900;
-      color:#5b21b6;
-      display:flex;
-      justify-content:space-between;
-      align-items:center
+    h2 {
+      color: #5b21b6;
     }
 
-    header button{
-      background:#7c3aed;
-      color:#fff;
-      border:none;
-      border-radius:999px;
-      padding:10px 18px;
-      font-weight:600;
-      cursor:pointer
+    .business {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.1);
     }
 
-    main{padding:0 50px 50px}
-
-    .card{
-      background:#fff;
-      border-radius:28px;
-      padding:34px;
-      box-shadow:0 20px 50px rgba(0,0,0,.1);
-      margin-bottom:30px
+    .business strong {
+      color: #4c1d95;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:30px
+    button {
+      margin-top: 10px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 999px;
+      background: #7c3aed;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
     }
 
-    .business-card{
-      background:#f5f3ff;
-      border-radius:20px;
-      padding:16px;
-      margin-bottom:12px
-    }
-
-    .business-card h4{
-      margin:0;
-      color:#4c1d95
-    }
-
-    .business-card span{
-      font-size:11px;
-      background:#ddd6fe;
-      padding:4px 10px;
-      border-radius:999px;
-      display:inline-block;
-      margin:6px 0
-    }
-
-    .business-actions{
-      display:flex;
-      gap:8px;
-      margin-top:10px
-    }
-
-    .business-actions button{
-      flex:1;
-      border:none;
-      border-radius:999px;
-      padding:8px;
-      font-size:12px;
-      font-weight:600;
-      cursor:pointer
-    }
-
-    .edit-btn{background:#7c3aed;color:#fff}
-    .copy-btn{background:#ede9fe;color:#5b21b6}
-
-    label{
-      font-weight:600;
-      color:#4b5563;
-      margin-top:14px;
-      display:block
-    }
-
-    input, textarea{
-      width:100%;
-      padding:14px;
-      margin-top:6px;
-      font-size:14px;
-      border-radius:14px;
-      border:1px solid #ddd
-    }
-
-    textarea{
-      resize:none;
-      height:180px
-    }
-
-    .actions{
-      display:flex;
-      gap:12px;
-      margin-top:18px
-    }
-
-    .actions button{
-      flex:1;
-      background:#7c3aed;
-      color:#fff;
-      border:none;
-      border-radius:999px;
-      font-weight:600;
-      cursor:pointer;
-      padding:14px
-    }
-
-    .actions .secondary{
-      background:#ede9fe;
-      color:#5b21b6
-    }
-
-    .msg{
-      margin-top:12px;
-      color:#16a34a;
-      font-size:13px
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div>ANSWERO Admin Dashboard</div>
-  <button onclick="newBusiness()">+ Add New Business</button>
-</header>
+<h2>ANSWERO Admin Dashboard</h2>
 
-<main>
+<p><strong>Admin Secret</strong></p>
+<input id="secret" type="password">
 
-  <div class="card">
-    <label>Admin Secret</label>
-    <input id="secret" type="password" placeholder="Enter admin secret">
-  </div>
+<h3>Add / Update Business</h3>
 
-  <div class="grid">
+<input id="id" placeholder="Business ID">
+<input id="name" placeholder="Business Name">
+<input id="email" placeholder="Business Email">
+<textarea id="info" placeholder="Business Information"></textarea>
 
-    <!-- BUSINESS LIST -->
-    <div class="card">
-      <h3>Your Businesses</h3>
-      <div id="list"></div>
-    </div>
+<button onclick="save()">Save Business</button>
 
-    <!-- FORM -->
-    <div class="card">
-      <h3 id="formTitle">Add / Edit Business</h3>
-
-      <label>Business ID</label>
-      <input id="id">
-
-      <label>Business Name</label>
-      <input id="name">
-
-      <label>Business Email</label>
-      <input id="email">
-
-      <label>Business Information</label>
-      <textarea id="info"></textarea>
-
-      <div class="actions">
-        <button onclick="save()">Save Business</button>
-        <button class="secondary" onclick="newBusiness()">Clear</button>
-      </div>
-
-      <div class="msg" id="msg"></div>
-    </div>
-
-  </div>
-
-</main>
+<h3>Your Businesses</h3>
+<div id="list"></div>
 
 <script>
 const BASE_URL = "https://YOUR_RENDER_URL.onrender.com";
 
-const secret = document.getElementById("secret");
-const list = document.getElementById("list");
-const idInput = document.getElementById("id");
-const nameInput = document.getElementById("name");
-const emailInput = document.getElementById("email");
-const infoInput = document.getElementById("info");
-const msg = document.getElementById("msg");
-const formTitle = document.getElementById("formTitle");
-
-async function loadBusinesses(){
-  if(!secret.value) return;
+async function load() {
+  if (!secret.value) return;
 
   const res = await fetch("/admin/list-businesses", {
     headers: { "x-admin-secret": secret.value }
   });
 
-  if(!res.ok){
-    list.innerHTML = "<p>Invalid admin secret.</p>";
-    return;
-  }
-
   const data = await res.json();
   list.innerHTML = "";
 
-  Object.entries(data).forEach(([id,b])=>{
+  Object.entries(data).forEach(([id, b]) => {
     const div = document.createElement("div");
-    div.className = "business-card";
+    div.className = "business";
 
     div.innerHTML = `
-      <h4>${b.name || id}</h4>
-      <span>${id}</span>
-      <div class="business-actions">
-        <button class="edit-btn">Edit</button>
-        <button class="copy-btn">Copy Embed Code</button>
-      </div>
+      <strong>${b.name || id}</strong><br>
+      <small>${id}</small><br>
+      <button onclick="copyEmbed('${id}')">Copy Embed Code</button>
     `;
-
-    div.querySelector(".edit-btn").onclick = () => {
-      idInput.value = id;
-      nameInput.value = b.name || "";
-      emailInput.value = b.email || "";
-      infoInput.value = b.info || "";
-      formTitle.innerText = "Edit Business";
-      msg.innerText = "";
-    };
-
-    div.querySelector(".copy-btn").onclick = () => {
-      const code =
-`<script src="${BASE_URL}/answero-widget.js" data-business-id="${id}"></script>`;
-      navigator.clipboard.writeText(code);
-      alert("Embed code copied to clipboard!");
-    };
 
     list.appendChild(div);
   });
 }
 
-function newBusiness(){
-  idInput.value = "";
-  nameInput.value = "";
-  emailInput.value = "";
-  infoInput.value = "";
-  formTitle.innerText = "Add New Business";
-  msg.innerText = "";
+function copyEmbed(id) {
+  const code =
+`<script src="${BASE_URL}/answero-widget.js" data-business-id="${id}"></script>`;
+
+  navigator.clipboard.writeText(code);
+  alert("Embed code copied!");
 }
 
-async function save(){
-  if(!idInput.value){
-    alert("Business ID is required.");
-    return;
-  }
-
+async function save() {
   await fetch("/admin/add-business", {
     method: "POST",
     headers: {
@@ -268,18 +109,17 @@ async function save(){
       "x-admin-secret": secret.value
     },
     body: JSON.stringify({
-      id: idInput.value,
-      name: nameInput.value,
-      email: emailInput.value,
-      info: infoInput.value
+      id: id.value,
+      name: name.value,
+      email: email.value,
+      info: info.value
     })
   });
 
-  msg.innerText = "Business saved successfully.";
-  loadBusinesses();
+  load();
 }
 
-secret.addEventListener("change", loadBusinesses);
+secret.addEventListener("input", load);
 </script>
 
 </body>
