@@ -9,7 +9,16 @@
   const style = document.createElement("style");
   style.innerHTML = `
     .answero-wrapper{display:flex;justify-content:center;width:100%}
-    .answero-container{max-width:520px;width:100%;margin:36px 0;font-family:Arial,sans-serif;position:relative}
+    .answero-container{
+  max-width:520px;
+  width:100%;
+  margin:36px auto;
+  padding:0 12px;
+  font-family:Arial,sans-serif;
+  position:relative;
+  box-sizing:border-box
+}
+
 
     .answero-info-btn{
       position:absolute;top:-14px;right:6px;
