@@ -5,6 +5,7 @@
   const API_BASE = "https://answero.onrender.com";
   if (!BUSINESS_ID) return;
 
+  /* ========== STYLES ========== */
   const style = document.createElement("style");
   style.innerHTML = `
     .answero-wrapper{display:flex;justify-content:center;width:100%}
@@ -13,9 +14,10 @@
     .answero-info-btn{
       position:absolute;top:-14px;right:4px;
       width:18px;height:18px;border-radius:50%;
-      border:1.5px solid #aaa;background:#fff;
+      border:1.5px solid #999;background:#fff;
       color:#7c3aed;font-size:11px;font-weight:700;
-      display:flex;align-items:center;justify-content:center;cursor:pointer
+      display:flex;align-items:center;justify-content:center;
+      line-height:1;cursor:pointer
     }
 
     .answero-search{
@@ -51,11 +53,11 @@
 
     .answero-branding{
       margin-top:18px;text-align:center;
-      font-size:11px;color:#666;letter-spacing:.6px
+      font-size:11px;color:#555;letter-spacing:.8px
     }
     .answero-branding span{
       color:#7c3aed;font-weight:900;
-      text-transform:uppercase;letter-spacing:1px
+      text-transform:uppercase;letter-spacing:1.2px
     }
 
     .answero-modal{
@@ -64,14 +66,14 @@
     }
     .answero-modal-content{
       background:#fff;max-width:560px;width:100%;
-      padding:30px;border-radius:22px;font-size:14px;line-height:1.7;position:relative
+      padding:32px;border-radius:22px;font-size:14px;line-height:1.7;position:relative
     }
     .answero-close{
       position:absolute;top:14px;right:14px;
       background:#7c3aed;color:#fff;border-radius:999px;
       padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer
     }
-    .answero-tabs{display:flex;gap:10px;margin:20px 0}
+    .answero-tabs{display:flex;gap:10px;margin:20px 0 14px}
     .answero-tab{
       flex:1;padding:10px;text-align:center;border-radius:10px;
       background:#f3f3f3;cursor:pointer;font-weight:600;font-size:13px
@@ -80,6 +82,7 @@
   `;
   document.head.appendChild(style);
 
+  /* ========== HTML ========== */
   const wrapper=document.createElement("div");
   wrapper.className="answero-wrapper";
   const container=document.createElement("div");
@@ -105,12 +108,13 @@
         <div class="answero-tab" data-tab="ai">AI-Generated Responses</div>
       </div>
       <div id="legal">
-        <p>ANSWERO complies with South Africa’s POPIA. Email addresses are collected only to forward enquiries to the relevant business.</p>
-        <p>No personal information is stored, reused, sold, or processed beyond fulfilling the enquiry.</p>
+        <p>ANSWERO operates in compliance with South Africa’s Protection of Personal Information Act (POPIA).</p>
+        <p>Email addresses are collected solely to enable a direct response from the relevant business.</p>
+        <p>No personal data is stored, reused, profiled, sold, or shared beyond the scope of the enquiry.</p>
       </div>
       <div id="ai" style="display:none">
-        <p>This service uses an AI system configured specifically for this business and constrained to its provided information.</p>
-        <p>If confidence is insufficient, enquiries are escalated directly to the business.</p>
+        <p>This service uses an artificial intelligence system configured specifically for this business.</p>
+        <p>The AI is constrained to business-provided information and designed to defer enquiries when certainty cannot be established.</p>
       </div>
     </div>
   `;
@@ -132,24 +136,45 @@
 
   const input=container.querySelector("#answero-input");
   const answerBox=container.querySelector("#answero-answer");
+
   const ask=async()=>{
     const q=input.value.trim();
     if(!q)return;
     input.value="";
     answerBox.style.display="block";
     answerBox.innerHTML=`<div class="thinking"><span></span><span></span><span></span></div>`;
-    const r=await fetch(`${API_BASE}/api/ask`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({businessId:BUSINESS_ID,question:q})});
+
+    const r=await fetch(`${API_BASE}/api/ask`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({businessId:BUSINESS_ID,question:q})
+    });
     const d=await r.json();
-    if(d.fallback===true){
-      answerBox.innerHTML=`<div class="answero-fallback"><p><strong>We couldn’t confidently answer this.</strong></p><input id="answero-email" placeholder="Your email"><button id="answero-send">Send</button></div>`;
+
+    if(d.fallback===true || d.answer==="FALLBACK_REQUIRED"){
+      answerBox.innerHTML=`
+        <div class="answero-fallback">
+          <p><strong>We couldn’t confidently answer this.</strong></p>
+          <input id="answero-email" placeholder="Your email">
+          <button id="answero-send">Send</button>
+        </div>`;
       container.querySelector("#answero-send").onclick=async()=>{
-        await fetch(`${API_BASE}/api/fallback`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({businessId:BUSINESS_ID,email:container.querySelector("#answero-email").value,question:q})});
+        await fetch(`${API_BASE}/api/fallback`,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            businessId:BUSINESS_ID,
+            email:container.querySelector("#answero-email").value,
+            question:q
+          })
+        });
         answerBox.innerHTML="Thank you. The business will contact you.";
       };
     } else {
       answerBox.innerHTML=d.answer||"Something went wrong.";
     }
   };
+
   container.querySelector("#answero-ask").onclick=ask;
   input.addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
 })();
