@@ -12,22 +12,46 @@ app.use(cors());
 app.use(express.json());
 
 /* ===============================
-   LOAD BUSINESS DATA
+   LOAD & SAVE BUSINESS DATA
 ================================ */
-const businesses = JSON.parse(
-  fs.readFileSync("./businesses.json", "utf-8")
+
+const BUSINESS_FILE = "./businesses.json";
+
+let businesses = JSON.parse(
+  fs.readFileSync(BUSINESS_FILE, "utf-8")
 );
+
+function saveBusinesses(data) {
+  fs.writeFileSync(
+    BUSINESS_FILE,
+    JSON.stringify(data, null, 2)
+  );
+}
+
+/* ===============================
+   ADMIN AUTH
+================================ */
+
+function requireAdmin(req, res, next) {
+  const secret = req.headers["x-admin-secret"];
+  if (secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
 
 /* ===============================
    OPENAI CONFIG
 ================================ */
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 /* ===============================
-   ASK AI ENDPOINT
+   AI QUESTION ENDPOINT
 ================================ */
+
 app.post("/api/ask", async (req, res) => {
   const { businessId, question } = req.body;
 
@@ -44,9 +68,9 @@ app.post("/api/ask", async (req, res) => {
 You are ANSWERO, an AI assistant for ONE business.
 
 STRICT RULES:
-- You may ONLY answer using the business information provided
-- You may logically infer simple facts (e.g. if open Mon–Fri, then closed Sat)
-- If the answer is NOT clearly supported, respond EXACTLY with:
+- Answer ONLY using the business information
+- You MAY logically infer simple facts (e.g. closed days)
+- If the answer is NOT clearly supported, respond EXACTLY:
 FALLBACK_REQUIRED
 - Do NOT invent services, prices, locations, or hours
 `;
@@ -77,15 +101,16 @@ ${question}
 
     res.json({ answer });
 
-  } catch (error) {
-    console.error("AI ERROR:", error);
-    res.status(500).json({ error: "AI processing error" });
+  } catch (err) {
+    console.error("AI ERROR:", err);
+    res.status(500).json({ error: "AI error" });
   }
 });
 
 /* ===============================
-   FALLBACK EMAIL ENDPOINT
+   EMAIL FALLBACK ENDPOINT
 ================================ */
+
 app.post("/api/fallback", async (req, res) => {
   const { businessId, email, question } = req.body;
 
@@ -94,15 +119,15 @@ app.post("/api/fallback", async (req, res) => {
     return res.status(404).json({ error: "Business not found" });
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
   try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
     await transporter.sendMail({
       from: `"ANSWERO" <${process.env.EMAIL_USER}>`,
       to: business.email,
@@ -112,15 +137,54 @@ app.post("/api/fallback", async (req, res) => {
 
     res.json({ success: true });
 
-  } catch (error) {
-    console.error("EMAIL ERROR:", error);
+  } catch (err) {
+    console.error("EMAIL ERROR:", err);
     res.status(500).json({ error: "Email failed" });
   }
 });
 
 /* ===============================
+   ADMIN: ADD BUSINESS
+================================ */
+
+app.post("/admin/add-business", requireAdmin, (req, res) => {
+  const { id, name, email, info } = req.body;
+
+  if (!id || !name || !email || !info) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  if (businesses[id]) {
+    return res.status(400).json({ error: "Business already exists" });
+  }
+
+  businesses[id] = { name, email, info };
+  saveBusinesses(businesses);
+
+  res.json({ success: true });
+});
+
+/* ===============================
+   ADMIN: UPDATE BUSINESS
+================================ */
+
+app.post("/admin/update-business", requireAdmin, (req, res) => {
+  const { id, name, email, info } = req.body;
+
+  if (!businesses[id]) {
+    return res.status(404).json({ error: "Business not found" });
+  }
+
+  businesses[id] = { name, email, info };
+  saveBusinesses(businesses);
+
+  res.json({ success: true });
+});
+
+/* ===============================
    START SERVER
 ================================ */
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`ANSWERO backend running on port ${PORT}`);
