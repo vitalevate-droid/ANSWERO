@@ -30,13 +30,25 @@
     }
 
     .answero-search{
-      display:flex;background:#fff;border-radius:999px;padding:6px;
-      box-shadow:0 10px 28px rgba(124,58,237,.18)
-    }
+  display:flex;
+  background:#fff;
+  border-radius:999px;
+  padding:6px;
+  overflow:hidden;
+  box-shadow:0 10px 28px rgba(124,58,237,.18)
+}
+
 
     .answero-search input{
-      flex:1;border:none;padding:14px 16px;font-size:14px;outline:none
-    }
+  flex:1;
+  border:none;
+  padding:14px 16px;
+  font-size:14px;
+  outline:none;
+  background:transparent;
+  border-radius:999px;
+}
+
 
     .answero-search button{
       background:#7c3aed;color:#fff;border:none;border-radius:999px;
@@ -179,17 +191,19 @@
           <button id="answero-send">Send</button>
         </div>`;
       container.querySelector("#answero-send").onclick=async()=>{
-        await fetch(`${API_BASE}/api/fallback`,{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            businessId:BUSINESS_ID,
-            email:container.querySelector("#answero-email").value,
-            question:q
-          })
-        });
-        answerBox.innerHTML="Thank you. The business will contact you soon.";
-      };
+  await fetch(`${API_BASE}/api/fallback`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      businessId:BUSINESS_ID,
+      email:container.querySelector("#answero-email").value,
+      question:q
+    })
+  });
+  answerBox.innerHTML="Thank you. The business will contact you soon.";
+};
+
+
     } else {
       answerBox.innerHTML=answerText||"Something went wrong.";
     }
