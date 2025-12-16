@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>ANSWERO Dashboard</title>
+  <meta charset="UTF-8" />
   <style>
     body{
       margin:0;
@@ -162,16 +163,16 @@
       <h3 id="formTitle">Add / Edit Business</h3>
 
       <label>Business ID</label>
-      <input id="id" placeholder="e.g. coffee-shop-123">
+      <input id="id">
 
       <label>Business Name</label>
-      <input id="name" placeholder="e.g. Sunset Coffee">
+      <input id="name">
 
       <label>Business Email</label>
-      <input id="email" placeholder="contact@business.com">
+      <input id="email">
 
-      <label>Business Information (used by AI)</label>
-      <textarea id="info" placeholder="Opening hours, services, location, policies…"></textarea>
+      <label>Business Information</label>
+      <textarea id="info"></textarea>
 
       <div class="actions">
         <button onclick="save()">Save Business</button>
@@ -188,20 +189,35 @@
 <script>
 const BASE_URL = "https://YOUR_RENDER_URL.onrender.com";
 
-async function load(){
+const secret = document.getElementById("secret");
+const list = document.getElementById("list");
+const idInput = document.getElementById("id");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const infoInput = document.getElementById("info");
+const msg = document.getElementById("msg");
+const formTitle = document.getElementById("formTitle");
+
+async function loadBusinesses(){
   if(!secret.value) return;
 
-  const r = await fetch("/admin/list-businesses", {
+  const res = await fetch("/admin/list-businesses", {
     headers: { "x-admin-secret": secret.value }
   });
 
-  const d = await r.json();
+  if(!res.ok){
+    list.innerHTML = "<p>Invalid admin secret.</p>";
+    return;
+  }
+
+  const data = await res.json();
   list.innerHTML = "";
 
-  Object.entries(d).forEach(([id,b])=>{
-    const c = document.createElement("div");
-    c.className = "business-card";
-    c.innerHTML = `
+  Object.entries(data).forEach(([id,b])=>{
+    const div = document.createElement("div");
+    div.className = "business-card";
+
+    div.innerHTML = `
       <h4>${b.name || id}</h4>
       <span>${id}</span>
       <div class="business-actions">
@@ -210,36 +226,31 @@ async function load(){
       </div>
     `;
 
-    c.querySelector(".edit-btn").onclick = ()=>{
+    div.querySelector(".edit-btn").onclick = () => {
       idInput.value = id;
-      name.value = b.name || "";
-      email.value = b.email || "";
-      info.value = b.info || "";
+      nameInput.value = b.name || "";
+      emailInput.value = b.email || "";
+      infoInput.value = b.info || "";
       formTitle.innerText = "Edit Business";
       msg.innerText = "";
     };
 
-    c.querySelector(".copy-btn").onclick = ()=>{
-      const code = `
-<script 
-  src="${BASE_URL}/answero-widget.js" 
-  data-business-id="${id}">
-</script>
-      `.trim();
-
+    div.querySelector(".copy-btn").onclick = () => {
+      const code =
+`<script src="${BASE_URL}/answero-widget.js" data-business-id="${id}"></script>`;
       navigator.clipboard.writeText(code);
       alert("Embed code copied to clipboard!");
     };
 
-    list.appendChild(c);
+    list.appendChild(div);
   });
 }
 
 function newBusiness(){
   idInput.value = "";
-  name.value = "";
-  email.value = "";
-  info.value = "";
+  nameInput.value = "";
+  emailInput.value = "";
+  infoInput.value = "";
   formTitle.innerText = "Add New Business";
   msg.innerText = "";
 }
@@ -258,20 +269,17 @@ async function save(){
     },
     body: JSON.stringify({
       id: idInput.value,
-      name: name.value,
-      email: email.value,
-      info: info.value
+      name: nameInput.value,
+      email: emailInput.value,
+      info: infoInput.value
     })
   });
 
   msg.innerText = "Business saved successfully.";
-  load();
+  loadBusinesses();
 }
 
-const idInput = document.getElementById("id");
-const formTitle = document.getElementById("formTitle");
-
-secret.addEventListener("input", load);
+secret.addEventListener("change", loadBusinesses);
 </script>
 
 </body>
