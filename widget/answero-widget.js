@@ -1,10 +1,8 @@
 (function () {
 
-    /* ===============================
-       CONFIG
-    =============================== */
     const scriptTag = document.currentScript;
     const BUSINESS_ID = scriptTag.getAttribute("data-business-id");
+
     const API_BASE = "https://answero.onrender.com";
 
     if (!BUSINESS_ID) {
@@ -13,60 +11,51 @@
     }
 
     /* ===============================
-       INJECT STYLES
+       STYLES
     =============================== */
     const style = document.createElement("style");
     style.innerHTML = `
         .answero-container {
             max-width: 520px;
             margin: 40px auto;
-            padding: 0 16px;
-            font-family: Inter, Arial, sans-serif;
+            font-family: Arial, sans-serif;
         }
 
         .answero-search {
             display: flex;
-            align-items: center;
             background: #fff;
             border-radius: 999px;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.18);
             padding: 6px;
+            box-shadow: 0 10px 30px rgba(124,58,237,.18);
         }
 
         .answero-search input {
             flex: 1;
             border: none;
-            padding: 16px 18px;
+            padding: 16px;
             font-size: 15px;
             outline: none;
-            background: transparent;
         }
 
         .answero-search button {
             background: #7c3aed;
             color: white;
             border: none;
-            padding: 14px 30px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
             border-radius: 999px;
-            margin-left: 6px;
+            padding: 14px 28px;
+            cursor: pointer;
         }
 
         .answero-search button:hover {
             background: #5b21b6;
         }
 
-        #answero-answer-wrapper {
-            background: white;
-            margin-top: 18px;
-            padding: 22px;
-            border-radius: 18px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            line-height: 1.6;
-            font-size: 15px;
-            display: none;
+        #answero-answer {
+            background: #fff;
+            margin-top: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.1);
         }
 
         .thinking {
@@ -83,64 +72,32 @@
             animation: pulse 1.4s infinite ease-in-out both;
         }
 
-        .thinking span:nth-child(1) { animation-delay: -0.32s; }
-        .thinking span:nth-child(2) { animation-delay: -0.16s; }
-
         @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0); opacity: .5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        .answero-fallback input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-        }
-
-        .answero-fallback button {
-            margin-top: 10px;
-            padding: 10px 16px;
-            cursor: pointer;
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
     `;
     document.head.appendChild(style);
 
     /* ===============================
-       INJECT HTML
+       HTML
     =============================== */
     const container = document.createElement("div");
     container.className = "answero-container";
-
     container.innerHTML = `
         <div class="answero-search">
-            <input 
-                type="text" 
-                placeholder="ASK A QUESTION ABOUT THIS BUSINESS..."
-                id="answero-input"
-            >
+            <input id="answero-input" placeholder="ASK A QUESTION ABOUT THIS BUSINESS..." />
             <button id="answero-ask">Ask</button>
         </div>
-
-        <div id="answero-answer-wrapper">
-            <div class="thinking" id="answero-thinking">
-                <span></span><span></span><span></span>
-            </div>
-            <div id="answero-answer"></div>
-        </div>
+        <div id="answero-answer" style="display:none"></div>
     `;
-
     scriptTag.parentNode.insertBefore(container, scriptTag);
 
-    /* ===============================
-       LOGIC
-    =============================== */
     const input = container.querySelector("#answero-input");
     const askBtn = container.querySelector("#answero-ask");
-    const answerWrap = container.querySelector("#answero-answer-wrapper");
-    const thinking = container.querySelector("#answero-thinking");
     const answerBox = container.querySelector("#answero-answer");
 
-    askBtn.addEventListener("click", ask);
+    askBtn.onclick = ask;
     input.addEventListener("keypress", e => {
         if (e.key === "Enter") ask();
     });
@@ -150,30 +107,27 @@
         if (!question) return;
 
         input.value = "";
-        answerBox.innerHTML = "";
-        thinking.style.display = "flex";
-        answerWrap.style.display = "block";
+        answerBox.style.display = "block";
+        answerBox.innerHTML = `
+            <div class="thinking">
+                <span></span><span></span><span></span>
+            </div>
+        `;
 
         try {
-            const response = await fetch(`${API_BASE}/api/ask`, {
+            const res = await fetch(`${API_BASE}/api/ask`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    businessId: BUSINESS_ID,
-                    question
-                })
+                body: JSON.stringify({ businessId: BUSINESS_ID, question })
             });
 
-            const data = await response.json();
-            thinking.style.display = "none";
+            const data = await res.json();
 
             if (data.fallback) {
                 answerBox.innerHTML = `
-                    <div class="answero-fallback">
-                        <p>We couldn’t find an answer. Leave your email and the business will get back to you.</p>
-                        <input id="answero-email" placeholder="Your email">
-                        <button id="answero-send">Send</button>
-                    </div>
+                    <p>We couldn’t find an answer. Leave your email:</p>
+                    <input id="answero-email" style="width:100%;padding:10px">
+                    <button id="answero-send">Send</button>
                 `;
 
                 container.querySelector("#answero-send").onclick = async () => {
@@ -189,7 +143,7 @@
                         })
                     });
 
-                    answerBox.innerHTML = "Thanks! The business will contact you shortly.";
+                    answerBox.innerHTML = "Thanks! The business will contact you.";
                 };
 
             } else {
@@ -197,10 +151,8 @@
             }
 
         } catch (err) {
-            thinking.style.display = "none";
             answerBox.innerHTML = "Something went wrong. Please try again.";
         }
     }
 
 })();
-
