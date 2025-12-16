@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ANSWERO Widget</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="answero-container">
+
+    <div class="answero-search">
+        <input 
+            type="text"
+            id="answero-input"
+            placeholder="ASK A QUESTION ABOUT THIS BUSINESS..."
+            autocomplete="off"
+        >
+        <button id="answero-ask-btn">Ask</button>
+    </div>
+
+    <div id="answero-answer-wrapper" class="hidden">
+
+        <div id="answero-thinking" class="thinking">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div id="answero-answer"></div>
+
+    </div>
+
+</div>
+
+<script src="widget.js"></script>
+</body>
+</html>
