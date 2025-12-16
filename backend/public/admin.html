@@ -3,24 +3,126 @@
 <head>
   <title>ANSWERO Dashboard</title>
   <style>
-    body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#ede9fe,#fdfcff)}
-    header{padding:30px 50px;font-size:28px;font-weight:900;color:#5b21b6}
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:linear-gradient(135deg,#ede9fe,#fdfcff)
+    }
+
+    header{
+      padding:30px 50px;
+      font-size:28px;
+      font-weight:900;
+      color:#5b21b6;
+      display:flex;
+      justify-content:space-between;
+      align-items:center
+    }
+
+    header button{
+      background:#7c3aed;
+      color:#fff;
+      border:none;
+      border-radius:999px;
+      padding:10px 18px;
+      font-weight:600;
+      cursor:pointer
+    }
+
     main{padding:0 50px 50px}
-    .card{background:#fff;border-radius:28px;padding:34px;box-shadow:0 20px 50px rgba(0,0,0,.1);margin-bottom:30px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
-    .business-card{background:#f5f3ff;border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer}
-    .business-card h4{margin:0;color:#4c1d95}
-    .business-card span{font-size:11px;background:#ddd6fe;padding:4px 10px;border-radius:999px}
-    label{font-weight:600;color:#4b5563;margin-top:14px;display:block}
-    input,textarea,button{width:100%;padding:14px;margin-top:6px;font-size:14px;border-radius:14px}
-    textarea{resize:none;height:180px}
-    button{background:#7c3aed;color:#fff;border:none;border-radius:999px;font-weight:600;cursor:pointer;margin-top:18px}
-    .msg{margin-top:12px;color:#16a34a;font-size:13px}
+
+    .card{
+      background:#fff;
+      border-radius:28px;
+      padding:34px;
+      box-shadow:0 20px 50px rgba(0,0,0,.1);
+      margin-bottom:30px
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:30px
+    }
+
+    .business-card{
+      background:#f5f3ff;
+      border-radius:20px;
+      padding:16px;
+      margin-bottom:12px;
+      cursor:pointer
+    }
+
+    .business-card h4{
+      margin:0;
+      color:#4c1d95
+    }
+
+    .business-card span{
+      font-size:11px;
+      background:#ddd6fe;
+      padding:4px 10px;
+      border-radius:999px;
+      display:inline-block;
+      margin-top:6px
+    }
+
+    label{
+      font-weight:600;
+      color:#4b5563;
+      margin-top:14px;
+      display:block
+    }
+
+    input, textarea{
+      width:100%;
+      padding:14px;
+      margin-top:6px;
+      font-size:14px;
+      border-radius:14px;
+      border:1px solid #ddd
+    }
+
+    textarea{
+      resize:none;
+      height:180px
+    }
+
+    .actions{
+      display:flex;
+      gap:12px;
+      margin-top:18px
+    }
+
+    .actions button{
+      flex:1;
+      background:#7c3aed;
+      color:#fff;
+      border:none;
+      border-radius:999px;
+      font-weight:600;
+      cursor:pointer;
+      padding:14px
+    }
+
+    .actions .secondary{
+      background:#ede9fe;
+      color:#5b21b6
+    }
+
+    .msg{
+      margin-top:12px;
+      color:#16a34a;
+      font-size:13px
+    }
   </style>
 </head>
 <body>
 
-<header>ANSWERO Admin Dashboard</header>
+<header>
+  <div>ANSWERO Admin Dashboard</div>
+  <button onclick="newBusiness()">+ Add New Business</button>
+</header>
 
 <main>
 
@@ -31,13 +133,15 @@
 
   <div class="grid">
 
+    <!-- BUSINESS LIST -->
     <div class="card">
       <h3>Your Businesses</h3>
       <div id="list"></div>
     </div>
 
+    <!-- FORM -->
     <div class="card">
-      <h3>Add / Edit Business</h3>
+      <h3 id="formTitle">Add / Edit Business</h3>
 
       <label>Business ID</label>
       <input id="id" placeholder="e.g. coffee-shop-123">
@@ -51,7 +155,11 @@
       <label>Business Information (used by AI)</label>
       <textarea id="info" placeholder="Opening hours, services, location, policies…"></textarea>
 
-      <button onclick="save()">Save Business</button>
+      <div class="actions">
+        <button onclick="save()">Save Business</button>
+        <button class="secondary" onclick="newBusiness()">Clear</button>
+      </div>
+
       <div class="msg" id="msg"></div>
     </div>
 
@@ -61,34 +169,71 @@
 
 <script>
 async function load(){
-  if(!secret.value)return;
-  const r=await fetch("/admin/list-businesses",{headers:{"x-admin-secret":secret.value}});
-  const d=await r.json();
-  list.innerHTML="";
+  if(!secret.value) return;
+
+  const r = await fetch("/admin/list-businesses", {
+    headers: { "x-admin-secret": secret.value }
+  });
+
+  const d = await r.json();
+  list.innerHTML = "";
+
   Object.entries(d).forEach(([id,b])=>{
-    const c=document.createElement("div");
-    c.className="business-card";
-    c.innerHTML=`<h4>${b.name||id}</h4><span>${id}</span>`;
-    c.onclick=()=>{
-      idInput.value=id;
-      name.value=b.name||"";
-      email.value=b.email||"";
-      info.value=b.info||"";
+    const c = document.createElement("div");
+    c.className = "business-card";
+    c.innerHTML = `
+      <h4>${b.name || id}</h4>
+      <span>${id}</span>
+    `;
+    c.onclick = ()=>{
+      idInput.value = id;
+      name.value = b.name || "";
+      email.value = b.email || "";
+      info.value = b.info || "";
+      formTitle.innerText = "Edit Business";
+      msg.innerText = "";
     };
     list.appendChild(c);
   });
 }
+
+function newBusiness(){
+  idInput.value = "";
+  name.value = "";
+  email.value = "";
+  info.value = "";
+  formTitle.innerText = "Add New Business";
+  msg.innerText = "";
+}
+
 async function save(){
-  await fetch("/admin/add-business",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","x-admin-secret":secret.value},
-    body:JSON.stringify({id:idInput.value,name:name.value,email:email.value,info:info.value})
+  if(!idInput.value){
+    alert("Business ID is required.");
+    return;
+  }
+
+  await fetch("/admin/add-business", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-secret": secret.value
+    },
+    body: JSON.stringify({
+      id: idInput.value,
+      name: name.value,
+      email: email.value,
+      info: info.value
+    })
   });
-  msg.innerText="Business saved successfully.";
+
+  msg.innerText = "Business saved successfully.";
   load();
 }
-const idInput=id;
-secret.addEventListener("input",load);
+
+const idInput = document.getElementById("id");
+const formTitle = document.getElementById("formTitle");
+
+secret.addEventListener("input", load);
 </script>
 
 </body>
