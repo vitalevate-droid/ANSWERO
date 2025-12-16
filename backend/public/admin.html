@@ -6,13 +6,13 @@
     body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#ede9fe,#fdfcff)}
     header{padding:30px 50px;font-size:28px;font-weight:900;color:#5b21b6}
     main{padding:0 50px 50px}
-    .card{background:#fff;border-radius:26px;padding:32px;box-shadow:0 20px 50px rgba(0,0,0,.1);margin-bottom:30px}
+    .card{background:#fff;border-radius:28px;padding:34px;box-shadow:0 20px 50px rgba(0,0,0,.1);margin-bottom:30px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
-    .business-card{background:#f5f3ff;border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer}
+    .business-card{background:#f5f3ff;border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer}
     .business-card h4{margin:0;color:#4c1d95}
     .business-card span{font-size:11px;background:#ddd6fe;padding:4px 10px;border-radius:999px}
     label{font-weight:600;color:#4b5563;margin-top:14px;display:block}
-    input,textarea,button{width:100%;padding:14px;margin-top:6px;font-size:14px}
+    input,textarea,button{width:100%;padding:14px;margin-top:6px;font-size:14px;border-radius:14px}
     textarea{resize:none;height:180px}
     button{background:#7c3aed;color:#fff;border:none;border-radius:999px;font-weight:600;cursor:pointer;margin-top:18px}
     .msg{margin-top:12px;color:#16a34a;font-size:13px}
@@ -68,7 +68,7 @@ async function load(){
   Object.entries(d).forEach(([id,b])=>{
     const c=document.createElement("div");
     c.className="business-card";
-    c.innerHTML=`<h4>${b.name || id}</h4><span>${id}</span>`;
+    c.innerHTML=`<h4>${b.name||id}</h4><span>${id}</span>`;
     c.onclick=()=>{
       idInput.value=id;
       name.value=b.name||"";
@@ -79,7 +79,11 @@ async function load(){
   });
 }
 async function save(){
-  await fetch("/admin/add-business",{method:"POST",headers:{"Content-Type":"application/json","x-admin-secret":secret.value},body:JSON.stringify({id:idInput.value,name:name.value,email:email.value,info:info.value})});
+  await fetch("/admin/add-business",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-admin-secret":secret.value},
+    body:JSON.stringify({id:idInput.value,name:name.value,email:email.value,info:info.value})
+  });
   msg.innerText="Business saved successfully.";
   load();
 }
