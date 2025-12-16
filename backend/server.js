@@ -110,33 +110,34 @@ app.post("/api/fallback", async (req, res) => {
       return res.json({ success: false });
     }
 
-    const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.log("EMAIL SKIPPED: Missing EMAIL_USER or EMAIL_PASS");
+  return res.json({ success: true });
+}
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
   }
 });
 
-
-
-    await transporter.sendMail({
-      to: business.email,
-      from: process.env.EMAIL_USER,
-      subject: "New customer question from ANSWERO",
-      text: `
+await transporter.sendMail({
+  to: business.email,
+  from: process.env.EMAIL_USER,
+  subject: "New customer question from ANSWERO",
+  text: `
 Customer email:
 ${email}
 
 Question:
 ${question}
-      `
-    });
+  `
+});
+
+res.json({ success: true });
+
 
     res.json({ success: true });
 
