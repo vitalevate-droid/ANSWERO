@@ -49,8 +49,7 @@
       background:#f5f3ff;
       border-radius:20px;
       padding:16px;
-      margin-bottom:12px;
-      cursor:pointer
+      margin-bottom:12px
     }
 
     .business-card h4{
@@ -64,8 +63,27 @@
       padding:4px 10px;
       border-radius:999px;
       display:inline-block;
-      margin-top:6px
+      margin:6px 0
     }
+
+    .business-actions{
+      display:flex;
+      gap:8px;
+      margin-top:10px
+    }
+
+    .business-actions button{
+      flex:1;
+      border:none;
+      border-radius:999px;
+      padding:8px;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer
+    }
+
+    .edit-btn{background:#7c3aed;color:#fff}
+    .copy-btn{background:#ede9fe;color:#5b21b6}
 
     label{
       font-weight:600;
@@ -168,6 +186,8 @@
 </main>
 
 <script>
+const BASE_URL = "https://YOUR_RENDER_URL.onrender.com";
+
 async function load(){
   if(!secret.value) return;
 
@@ -184,8 +204,13 @@ async function load(){
     c.innerHTML = `
       <h4>${b.name || id}</h4>
       <span>${id}</span>
+      <div class="business-actions">
+        <button class="edit-btn">Edit</button>
+        <button class="copy-btn">Copy Embed Code</button>
+      </div>
     `;
-    c.onclick = ()=>{
+
+    c.querySelector(".edit-btn").onclick = ()=>{
       idInput.value = id;
       name.value = b.name || "";
       email.value = b.email || "";
@@ -193,6 +218,19 @@ async function load(){
       formTitle.innerText = "Edit Business";
       msg.innerText = "";
     };
+
+    c.querySelector(".copy-btn").onclick = ()=>{
+      const code = `
+<script 
+  src="${BASE_URL}/answero-widget.js" 
+  data-business-id="${id}">
+</script>
+      `.trim();
+
+      navigator.clipboard.writeText(code);
+      alert("Embed code copied to clipboard!");
+    };
+
     list.appendChild(c);
   });
 }
