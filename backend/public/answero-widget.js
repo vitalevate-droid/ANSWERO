@@ -15,9 +15,16 @@
     =============================== */
     const style = document.createElement("style");
     style.innerHTML = `
+        .answero-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
         .answero-container {
             max-width: 520px;
-            margin: 30px 0;
+            width: 100%;
+            margin: 40px 0;
             font-family: Arial, sans-serif;
         }
 
@@ -45,7 +52,7 @@
             padding: 14px 28px;
             cursor: pointer;
             font-weight: 600;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease, background 0.2s ease;
         }
 
         .answero-search button:hover {
@@ -54,12 +61,13 @@
 
         .answero-search button:disabled {
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
         #answero-answer {
             background: #fff;
             margin-top: 16px;
-            padding: 20px;
+            padding: 22px;
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,.1);
             line-height: 1.5;
@@ -88,21 +96,48 @@
         }
 
         .answero-trust {
-            margin-top: 12px;
+            margin-top: 14px;
             font-size: 12px;
             color: #777;
         }
 
+        .answero-branding {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            letter-spacing: 0.4px;
+        }
+
+        .answero-branding span {
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
         .answero-fallback input {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
         }
 
         .answero-fallback button {
-            margin-top: 10px;
-            padding: 10px 16px;
+            margin-top: 12px;
+            padding: 12px;
+            width: 100%;
+            border-radius: 999px;
+            border: none;
+            background: #7c3aed;
+            color: white;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .answero-fallback button:hover {
+            background: #5b21b6;
         }
     `;
     document.head.appendChild(style);
@@ -110,17 +145,27 @@
     /* ===============================
        HTML
     =============================== */
+    const wrapper = document.createElement("div");
+    wrapper.className = "answero-wrapper";
+
     const container = document.createElement("div");
     container.className = "answero-container";
+
     container.innerHTML = `
         <div class="answero-search">
             <input id="answero-input" placeholder="ASK A QUESTION ABOUT THIS BUSINESS..." />
             <button id="answero-ask">Ask</button>
         </div>
+
         <div id="answero-answer" style="display:none"></div>
+
+        <div class="answero-branding">
+            Powered by <span>ANSWERO</span>
+        </div>
     `;
 
-    scriptTag.parentNode.insertBefore(container, scriptTag);
+    wrapper.appendChild(container);
+    scriptTag.parentNode.insertBefore(wrapper, scriptTag);
 
     const input = container.querySelector("#answero-input");
     const askBtn = container.querySelector("#answero-ask");
@@ -140,7 +185,6 @@
 
         input.value = "";
         askBtn.disabled = true;
-        askBtn.style.opacity = "0.6";
 
         answerBox.style.display = "block";
         answerBox.innerHTML = `
@@ -164,7 +208,7 @@
             if (data.fallback) {
                 answerBox.innerHTML = `
                     <div class="answero-fallback">
-                        <p>We couldn’t find a confident answer.</p>
+                        <p><strong>We couldn’t find a confident answer.</strong></p>
                         <p style="font-size:13px;color:#666;">
                             Leave your email and the business will get back to you.
                         </p>
@@ -196,8 +240,6 @@
                         Answers are generated using this business’s information.
                     </div>
                 `;
-            } else if (data.error) {
-                answerBox.innerHTML = "This business is not configured correctly.";
             } else {
                 answerBox.innerHTML = "Something went wrong. Please try again.";
             }
@@ -208,7 +250,6 @@
         }
 
         askBtn.disabled = false;
-        askBtn.style.opacity = "1";
     }
 
 })();
