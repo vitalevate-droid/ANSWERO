@@ -4,72 +4,105 @@
   <title>ANSWERO Dashboard</title>
   <style>
     body {
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:linear-gradient(135deg,#ede9fe,#fdfcff);
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ede9fe, #fdfcff);
     }
 
     .layout {
-      display:grid;
-      grid-template-columns:340px 1fr;
-      height:100vh;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      height: 100vh;
     }
 
+    /* SIDEBAR */
     .sidebar {
-      background:#fff;
-      padding:20px;
-      overflow-y:auto;
-      box-shadow:4px 0 20px rgba(0,0,0,.05);
+      background: linear-gradient(180deg, #7c3aed, #5b21b6);
+      padding: 24px;
+      color: white;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      font-size: 20px;
     }
 
     .business-card {
-      background:#f5f3ff;
-      border-radius:12px;
-      padding:12px;
-      margin-bottom:12px;
-      cursor:pointer;
+      background: rgba(255,255,255,0.15);
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+
+    .business-card:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
     }
 
     .business-card h4 {
-      margin:0;
-      color:#4c1d95;
+      margin: 0 0 6px 0;
+      font-size: 15px;
     }
 
-    .business-card span {
-      font-size:11px;
-      background:#ddd6fe;
-      padding:3px 8px;
-      border-radius:999px;
-      color:#5b21b6;
+    .business-id {
+      display: inline-block;
+      font-size: 11px;
+      background: rgba(0,0,0,0.2);
+      padding: 4px 10px;
+      border-radius: 999px;
     }
 
+    /* MAIN */
     .main {
-      padding:40px;
+      padding: 50px;
+      overflow-y: auto;
     }
 
     .card {
-      background:#fff;
-      max-width:700px;
-      padding:30px;
-      border-radius:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);
+      background: white;
+      max-width: 720px;
+      padding: 36px;
+      border-radius: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.1);
     }
 
-    textarea { resize:none; }
+    h3 {
+      margin-top: 0;
+      color: #5b21b6;
+    }
 
-    input,textarea,button {
-      width:100%;
-      padding:12px;
-      margin-top:12px;
+    input, textarea, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: none;
+      height: 160px;
     }
 
     button {
-      background:#7c3aed;
-      color:#fff;
-      border:none;
-      border-radius:10px;
-      font-weight:600;
-      cursor:pointer;
+      background: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #5b21b6;
+    }
+
+    .msg {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #16a34a;
     }
   </style>
 </head>
@@ -77,14 +110,16 @@
 
 <div class="layout">
 
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <h3>Your Businesses</h3>
-    <div id="list"></div>
+    <h2>ANSWERO Businesses</h2>
+    <div id="businessList"></div>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
     <div class="card">
-      <h2>Add / Update Business</h2>
+      <h3>Add / Update Business</h3>
 
       <input id="secret" type="password" placeholder="Admin Secret">
       <input id="id" placeholder="Business ID">
@@ -93,53 +128,65 @@
       <textarea id="info" placeholder="Business Information"></textarea>
 
       <button onclick="save()">Save Business</button>
-      <div id="msg"></div>
+      <div class="msg" id="msg"></div>
     </div>
   </div>
 
 </div>
 
 <script>
-async function load() {
-  const r = await fetch("/admin/list-businesses", {
-    headers:{ "x-admin-secret": secret.value }
+const list = document.getElementById("businessList");
+
+async function loadBusinesses() {
+  if (!secret.value) return;
+
+  const res = await fetch("/admin/list-businesses", {
+    headers: { "x-admin-secret": secret.value }
   });
-  const d = await r.json();
-  list.innerHTML="";
-  Object.entries(d).forEach(([id,b])=>{
-    const div=document.createElement("div");
-    div.className="business-card";
-    div.innerHTML=`<h4>${b.name}</h4><span>${id}</span>`;
-    div.onclick=()=>{ 
-      idInput.value=id;
-      name.value=b.name;
-      email.value=b.email;
-      info.value=b.info;
+
+  const data = await res.json();
+  list.innerHTML = "";
+
+  Object.entries(data).forEach(([id, b]) => {
+    const card = document.createElement("div");
+    card.className = "business-card";
+    card.innerHTML = `
+      <h4>${b.name}</h4>
+      <div class="business-id">${id}</div>
+    `;
+    card.onclick = () => {
+      idInput.value = id;
+      name.value = b.name;
+      email.value = b.email;
+      info.value = b.info;
     };
-    list.appendChild(div);
+    list.appendChild(card);
   });
 }
 
-async function save(){
-  const r=await fetch("/admin/add-business",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-admin-secret":secret.value
+async function save() {
+  const res = await fetch("/admin/add-business", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-secret": secret.value
     },
-    body:JSON.stringify({
-      id:idInput.value,
-      name:name.value,
-      email:email.value,
-      info:info.value
+    body: JSON.stringify({
+      id: idInput.value,
+      name: name.value,
+      email: email.value,
+      info: info.value
     })
   });
-  msg.innerText="Saved!";
-  load();
+
+  const data = await res.json();
+  msg.innerText = data.success ? "Business saved successfully." : "Error saving business.";
+
+  loadBusinesses();
 }
 
-const idInput=id;
-secret.onchange=load;
+const idInput = id;
+secret.addEventListener("input", loadBusinesses);
 </script>
 
 </body>
