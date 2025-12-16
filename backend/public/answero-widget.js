@@ -190,18 +190,34 @@
           <input id="answero-email" placeholder="Your email address">
           <button id="answero-send">Send</button>
         </div>`;
-      container.querySelector("#answero-send").onclick=async()=>{
-  await fetch(`${API_BASE}/api/fallback`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      businessId:BUSINESS_ID,
-      email:container.querySelector("#answero-email").value,
-      question:q
-    })
-  });
-  answerBox.innerHTML="Thank you. The business will contact you soon.";
+      container.querySelector("#answero-send").onclick = async () => {
+  answerBox.innerHTML = "Sending your message…";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/fallback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        businessId: BUSINESS_ID,
+        email: container.querySelector("#answero-email").value,
+        question: q
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      answerBox.innerHTML = "Thank you. The business will contact you soon.";
+    } else {
+      answerBox.innerHTML =
+        "We received your question, but email delivery failed. The business may still follow up.";
+    }
+  } catch (err) {
+    answerBox.innerHTML =
+      "Something went wrong, but your question was captured. The business will follow up if possible.";
+  }
 };
+
 
 
     } else {
