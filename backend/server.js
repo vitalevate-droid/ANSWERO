@@ -12,181 +12,92 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ===============================
-   LOAD & SAVE BUSINESS DATA
-================================ */
+const FILE = "./businesses.json";
 
-const BUSINESS_FILE = "./businesses.json";
+let businesses = JSON.parse(fs.readFileSync(FILE, "utf-8"));
 
-let businesses = JSON.parse(
-  fs.readFileSync(BUSINESS_FILE, "utf-8")
-);
-
-function saveBusinesses(data) {
-  fs.writeFileSync(
-    BUSINESS_FILE,
-    JSON.stringify(data, null, 2)
-  );
+function saveBusinesses() {
+  fs.writeFileSync(FILE, JSON.stringify(businesses, null, 2));
 }
 
-/* ===============================
-   ADMIN AUTH
-================================ */
-
 function requireAdmin(req, res, next) {
-  const secret = req.headers["x-admin-secret"];
-  if (secret !== process.env.ADMIN_SECRET) {
+  if (req.headers["x-admin-secret"] !== process.env.ADMIN_SECRET) {
     return res.status(401).json({ error: "Unauthorized" });
   }
   next();
 }
 
-/* ===============================
-   OPENAI CONFIG
-================================ */
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-/* ===============================
-   AI QUESTION ENDPOINT
-================================ */
+/* ================= AI ================= */
 
 app.post("/api/ask", async (req, res) => {
   const { businessId, question } = req.body;
+  const b = businesses[businessId];
+  if (!b) return res.json({ error: "Business not found" });
 
-  if (!businessId || !question) {
-    return res.status(400).json({ error: "Missing data" });
-  }
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Answer ONLY using the business info. If unsure reply FALLBACK_REQUIRED."
+      },
+      {
+        role: "user",
+        content: `BUSINESS INFO:\n${b.info}\n\nQUESTION:\n${question}`
+      }
+    ]
+  });
 
-  const business = businesses[businessId];
-  if (!business) {
-    return res.status(404).json({ error: "Business not found" });
-  }
+  const text = completion.choices[0].message.content.trim();
+  if (text === "FALLBACK_REQUIRED") return res.json({ fallback: true });
 
-  const systemPrompt = `
-You are ANSWERO, an AI assistant for ONE business.
-
-STRICT RULES:
-- Answer ONLY using the business information
-- You MAY logically infer simple facts (e.g. closed days)
-- If the answer is NOT clearly supported, respond EXACTLY:
-FALLBACK_REQUIRED
-- Do NOT invent services, prices, locations, or hours
-`;
-
-  const userPrompt = `
-BUSINESS INFORMATION:
-${business.info}
-
-QUESTION:
-${question}
-`;
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature: 0.2
-    });
-
-    const answer = completion.choices[0].message.content.trim();
-
-    if (answer === "FALLBACK_REQUIRED") {
-      return res.json({ fallback: true });
-    }
-
-    res.json({ answer });
-
-  } catch (err) {
-    console.error("AI ERROR:", err);
-    res.status(500).json({ error: "AI error" });
-  }
+  res.json({ answer: text });
 });
 
-/* ===============================
-   EMAIL FALLBACK ENDPOINT
-================================ */
+/* ================= FALLBACK ================= */
 
 app.post("/api/fallback", async (req, res) => {
   const { businessId, email, question } = req.body;
+  const b = businesses[businessId];
 
-  const business = businesses[businessId];
-  if (!business) {
-    return res.status(404).json({ error: "Business not found" });
-  }
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
 
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+  await transporter.sendMail({
+    to: b.email,
+    from: process.env.EMAIL_USER,
+    subject: "New customer question",
+    text: `Email: ${email}\n\nQuestion:\n${question}`
+  });
 
-    await transporter.sendMail({
-      from: `"ANSWERO" <${process.env.EMAIL_USER}>`,
-      to: business.email,
-      subject: "New customer question",
-      text: `Customer email: ${email}\n\nQuestion:\n${question}`
-    });
-
-    res.json({ success: true });
-
-  } catch (err) {
-    console.error("EMAIL ERROR:", err);
-    res.status(500).json({ error: "Email failed" });
-  }
+  res.json({ success: true });
 });
 
-/* ===============================
-   ADMIN: ADD BUSINESS
-================================ */
+/* ================= ADMIN ================= */
+
+app.get("/admin/list-businesses", requireAdmin, (req, res) => {
+  res.json(businesses);
+});
 
 app.post("/admin/add-business", requireAdmin, (req, res) => {
   const { id, name, email, info } = req.body;
-
-  if (!id || !name || !email || !info) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  if (businesses[id]) {
-    return res.status(400).json({ error: "Business already exists" });
-  }
-
   businesses[id] = { name, email, info };
-  saveBusinesses(businesses);
-
+  saveBusinesses();
   res.json({ success: true });
 });
-
-/* ===============================
-   ADMIN: UPDATE BUSINESS
-================================ */
-
-app.post("/admin/update-business", requireAdmin, (req, res) => {
-  const { id, name, email, info } = req.body;
-
-  if (!businesses[id]) {
-    return res.status(404).json({ error: "Business not found" });
-  }
-
-  businesses[id] = { name, email, info };
-  saveBusinesses(businesses);
-
-  res.json({ success: true });
-});
-
-/* ===============================
-   START SERVER
-================================ */
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`ANSWERO backend running on port ${PORT}`);
+  console.log("ANSWERO backend running");
 });

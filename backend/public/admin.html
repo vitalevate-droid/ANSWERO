@@ -4,61 +4,155 @@
   <title>ANSWERO Admin Dashboard</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f6f5fb;
-      padding: 40px;
+      background: #f4f3ff;
     }
-    .box {
-      max-width: 600px;
-      margin: auto;
-      background: white;
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: #fff;
+      padding: 20px;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      color: #7c3aed;
+    }
+
+    .business-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .business-item:hover {
+      background: #ede9fe;
+    }
+
+    /* MAIN */
+    .main {
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .card {
+      max-width: 640px;
+      background: #fff;
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
     }
+
+    h2 {
+      margin-top: 0;
+    }
+
     input, textarea, button {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 14px;
     }
+
+    textarea {
+      resize: none; /* 🔒 DISABLE RESIZE */
+      height: 140px;
+    }
+
     button {
       background: #7c3aed;
-      color: white;
+      color: #fff;
       border: none;
-      cursor: pointer;
       border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
     }
+
     button:hover {
       background: #5b21b6;
+    }
+
+    .msg {
+      margin-top: 12px;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
 
-<div class="box">
-  <h2>ANSWERO – Add / Update Business</h2>
+<div class="layout">
 
-  <input id="secret" placeholder="Admin Secret" type="password">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h3>Businesses</h3>
+    <div id="businessList">Loading…</div>
+  </div>
 
-  <input id="id" placeholder="Business ID (e.g. gym_elite_004)">
-  <input id="name" placeholder="Business Name">
-  <input id="email" placeholder="Business Email">
+  <!-- MAIN -->
+  <div class="main">
+    <div class="card">
+      <h2>Add / Update Business</h2>
 
-  <textarea id="info" placeholder="Business Information" rows="6"></textarea>
+      <input id="secret" type="password" placeholder="Admin Secret">
+      <input id="id" placeholder="Business ID">
+      <input id="name" placeholder="Business Name">
+      <input id="email" placeholder="Business Email">
+      <textarea id="info" placeholder="Business Information"></textarea>
 
-  <button onclick="save()">Save Business</button>
+      <button onclick="save()">Save Business</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
 
-  <p id="msg"></p>
 </div>
 
 <script>
+const listEl = document.getElementById("businessList");
+
+async function loadBusinesses() {
+  const res = await fetch("/admin/list-businesses", {
+    headers: { "x-admin-secret": document.getElementById("secret").value }
+  });
+
+  const data = await res.json();
+  listEl.innerHTML = "";
+
+  Object.entries(data).forEach(([id, b]) => {
+    const div = document.createElement("div");
+    div.className = "business-item";
+    div.innerText = b.name + " (" + id + ")";
+    div.onclick = () => fill(id, b);
+    listEl.appendChild(div);
+  });
+}
+
+function fill(id, b) {
+  document.getElementById("id").value = id;
+  document.getElementById("name").value = b.name;
+  document.getElementById("email").value = b.email;
+  document.getElementById("info").value = b.info;
+}
+
 async function save() {
   const secret = document.getElementById("secret").value;
-  const id = document.getElementById("id").value;
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const info = document.getElementById("info").value;
+
+  const body = {
+    id: id.value,
+    name: name.value,
+    email: email.value,
+    info: info.value
+  };
 
   const res = await fetch("/admin/add-business", {
     method: "POST",
@@ -66,13 +160,17 @@ async function save() {
       "Content-Type": "application/json",
       "x-admin-secret": secret
     },
-    body: JSON.stringify({ id, name, email, info })
+    body: JSON.stringify(body)
   });
 
   const data = await res.json();
   document.getElementById("msg").innerText =
-    data.success ? "Business saved successfully." : JSON.stringify(data);
+    data.success ? "Saved successfully." : JSON.stringify(data);
+
+  loadBusinesses();
 }
+
+document.getElementById("secret").addEventListener("change", loadBusinesses);
 </script>
 
 </body>
