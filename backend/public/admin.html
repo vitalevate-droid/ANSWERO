@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ANSWERO Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f5fb;
+      padding: 40px;
+    }
+    .box {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    button:hover {
+      background: #5b21b6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>ANSWERO – Add / Update Business</h2>
+
+  <input id="secret" placeholder="Admin Secret" type="password">
+
+  <input id="id" placeholder="Business ID (e.g. gym_elite_004)">
+  <input id="name" placeholder="Business Name">
+  <input id="email" placeholder="Business Email">
+
+  <textarea id="info" placeholder="Business Information" rows="6"></textarea>
+
+  <button onclick="save()">Save Business</button>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+async function save() {
+  const secret = document.getElementById("secret").value;
+  const id = document.getElementById("id").value;
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const info = document.getElementById("info").value;
+
+  const res = await fetch("/admin/add-business", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-secret": secret
+    },
+    body: JSON.stringify({ id, name, email, info })
+  });
+
+  const data = await res.json();
+  document.getElementById("msg").innerText =
+    data.success ? "Business saved successfully." : JSON.stringify(data);
+}
+</script>
+
+</body>
+</html>
