@@ -19,15 +19,6 @@
       box-sizing:border-box
     }
 
-    .answero-info-btn{
-      position:absolute;top:-14px;right:6px;
-      width:18px;height:18px;border-radius:50%;
-      border:1.5px solid #999;background:#fff;
-      color:#7c3aed;font-size:11px;font-weight:700;
-      display:flex;align-items:center;justify-content:center;
-      cursor:pointer
-    }
-
     .answero-search{
       display:flex;
       background:#fff;
@@ -48,61 +39,63 @@
     }
 
     .answero-search button{
-      background:#7c3aed;color:#fff;border:none;border-radius:999px;
-      padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer
+      background:#7c3aed;
+      color:#fff;
+      border:none;
+      border-radius:999px;
+      padding:10px 20px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer
     }
 
     #answero-answer{
-      background:#fff;margin-top:16px;padding:22px;border-radius:18px;
-      box-shadow:0 8px 22px rgba(0,0,0,.1);line-height:1.6
+      background:#fff;
+      margin-top:16px;
+      padding:22px;
+      border-radius:18px;
+      box-shadow:0 8px 22px rgba(0,0,0,.1);
+      line-height:1.6
     }
 
     .thinking{display:flex;justify-content:center;gap:8px}
-    .thinking span{width:9px;height:9px;background:#7c3aed;border-radius:50%;animation:pulse 1.4s infinite}
-    @keyframes pulse{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+    .thinking span{
+      width:9px;height:9px;
+      background:#7c3aed;
+      border-radius:50%;
+      animation:pulse 1.4s infinite
+    }
+    @keyframes pulse{
+      0%,80%,100%{transform:scale(0)}
+      40%{transform:scale(1)}
+    }
 
     .answero-fallback p{margin:0 0 10px}
 
     .answero-branding{
-      margin-top:18px;text-align:center;
-      font-size:11px;color:#555;letter-spacing:.8px
+      margin-top:18px;
+      text-align:center;
+      font-size:11px;
+      color:#555;
+      letter-spacing:.8px
     }
     .answero-branding span{
-      color:#7c3aed;font-weight:900;
-      text-transform:uppercase;letter-spacing:1.2px
+      color:#7c3aed;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:1.2px
     }
-
-    /* MODAL */
-    .answero-modal{
-      position:fixed;inset:0;background:rgba(0,0,0,.45);
-      display:none;align-items:center;justify-content:center;z-index:9999
-    }
-    .answero-modal-content{
-      background:#fff;max-width:560px;width:100%;
-      padding:32px;border-radius:22px;font-size:14px;line-height:1.7;position:relative
-    }
-    .answero-close{
-      position:absolute;top:14px;right:14px;
-      background:#7c3aed;color:#fff;border-radius:999px;
-      padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer
-    }
-    .answero-tabs{display:flex;gap:10px;margin:20px 0 14px}
-    .answero-tab{
-      flex:1;padding:10px;text-align:center;border-radius:10px;
-      background:#f3f3f3;cursor:pointer;font-weight:600;font-size:13px
-    }
-    .answero-tab.active{background:#ede9fe;color:#7c3aed}
   `;
   document.head.appendChild(style);
 
   /* ========== HTML ========== */
-  const wrapper=document.createElement("div");
-  wrapper.className="answero-wrapper";
-  const container=document.createElement("div");
-  container.className="answero-container";
+  const wrapper = document.createElement("div");
+  wrapper.className = "answero-wrapper";
 
-  container.innerHTML=`
-    <div class="answero-info-btn" id="answero-info">i</div>
+  const container = document.createElement("div");
+  container.className = "answero-container";
+
+  container.innerHTML = `
     <div class="answero-search">
       <input id="answero-input" placeholder="Ask a question about this business…" />
       <button id="answero-ask">Ask</button>
@@ -111,76 +104,48 @@
     <div class="answero-branding">Powered by <span>ANSWERO</span></div>
   `;
 
-  const modal=document.createElement("div");
-  modal.className="answero-modal";
-  modal.innerHTML=`
-    <div class="answero-modal-content">
-      <div class="answero-close" id="answero-close">Close</div>
-      <div class="answero-tabs">
-        <div class="answero-tab active" data-tab="legal">Information & Data Protection</div>
-        <div class="answero-tab" data-tab="ai">AI-Generated Responses</div>
-      </div>
-      <div id="legal">
-        <p>ANSWERO complies with South Africa’s Protection of Personal Information Act (POPIA).</p>
-        <p>This widget does not collect or store personal information.</p>
-      </div>
-      <div id="ai" style="display:none">
-        <p>This service uses an AI system configured specifically for this business.</p>
-        <p>The AI is limited to business-provided information and may decline to answer when certainty is insufficient.</p>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
   wrapper.appendChild(container);
-  scriptTag.parentNode.insertBefore(wrapper,scriptTag);
+  scriptTag.parentNode.insertBefore(wrapper, scriptTag);
 
-  /* MODAL LOGIC */
-  document.getElementById("answero-info").onclick=()=>modal.style.display="flex";
-  document.getElementById("answero-close").onclick=()=>modal.style.display="none";
-  modal.querySelectorAll(".answero-tab").forEach(t=>{
-    t.onclick=()=>{
-      modal.querySelectorAll(".answero-tab").forEach(x=>x.classList.remove("active"));
-      t.classList.add("active");
-      modal.querySelector("#legal").style.display=t.dataset.tab==="legal"?"block":"none";
-      modal.querySelector("#ai").style.display=t.dataset.tab==="ai"?"block":"none";
-    };
-  });
+  /* ========== MAIN LOGIC ========== */
+  const input = container.querySelector("#answero-input");
+  const answerBox = container.querySelector("#answero-answer");
 
-  /* MAIN LOGIC */
-  const input=container.querySelector("#answero-input");
-  const answerBox=container.querySelector("#answero-answer");
+  const ask = async () => {
+    const q = input.value.trim();
+    if (!q) return;
 
-  const ask=async()=>{
-    const q=input.value.trim();
-    if(!q)return;
+    input.value = "";
+    answerBox.style.display = "block";
+    answerBox.innerHTML =
+      `<div class="thinking"><span></span><span></span><span></span></div>`;
 
-    input.value="";
-    answerBox.style.display="block";
-    answerBox.innerHTML=`<div class="thinking"><span></span><span></span><span></span></div>`;
-
-    const r=await fetch(`${API_BASE}/api/ask`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({businessId:BUSINESS_ID,question:q})
+    const r = await fetch(`${API_BASE}/api/ask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId: BUSINESS_ID, question: q })
     });
-    const d=await r.json();
+    const d = await r.json();
 
-    const answerText=(d.answer||"").toString().trim();
-    const isFallback=d.fallback===true||answerText.toLowerCase().includes("fallback_required");
+    const answerText = (d.answer || "").toString().trim();
+    const isFallback =
+      d.fallback === true ||
+      answerText.toLowerCase().includes("fallback_required");
 
-    if(isFallback){
-      answerBox.innerHTML=`
+    if (isFallback) {
+      answerBox.innerHTML = `
         <div class="answero-fallback">
           <p><strong>We don’t have enough information to answer this question.</strong></p>
           <p>Please contact the business directly using their official contact details.</p>
         </div>`;
     } else {
-      answerBox.innerHTML=answerText||"Something went wrong.";
+      answerBox.innerHTML = answerText || "Something went wrong.";
     }
   };
 
-  container.querySelector("#answero-ask").onclick=ask;
-  input.addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
+  container.querySelector("#answero-ask").onclick = ask;
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") ask();
+  });
 
 })();
