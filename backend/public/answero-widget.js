@@ -10,14 +10,22 @@
   style.innerHTML = `
     .answero-wrapper{display:flex;justify-content:center;width:100%}
     .answero-container{
-      max-width:520px;
-      width:100%;
-      margin:36px auto;
-      padding:0 12px;
-      font-family:Arial,sans-serif;
-      position:relative;
-      box-sizing:border-box
-    }
+  max-width:520px;
+  width:100%;
+  margin:36px auto;
+  padding:0 12px;
+  font-family:Arial,sans-serif;
+  position:relative;
+  box-sizing:border-box;
+
+  /* visual polish */
+  border:1px solid rgba(124,58,237,0.18);
+  box-shadow:
+    0 8px 24px rgba(124,58,237,0.12),
+    0 1px 2px rgba(0,0,0,0.04);
+  border-radius:24px;
+}
+
 
     .answero-search{
       display:flex;
