@@ -28,13 +28,19 @@
 
 
     .answero-search{
-      display:flex;
-      background:#fff;
-      border-radius:999px;
-      padding:6px;
-      overflow:hidden;
-      box-shadow:0 10px 28px rgba(124,58,237,.18)
-    }
+  display:flex;
+  background:#fff;
+  border-radius:999px;
+  padding:6px;
+  overflow:hidden;
+
+  /* subtle definition for white backgrounds */
+  border:1px solid rgba(124,58,237,0.25);
+  box-shadow:
+    0 6px 18px rgba(124,58,237,0.20),
+    0 1px 3px rgba(0,0,0,0.06);
+}
+
 
     .answero-search input{
       flex:1;
