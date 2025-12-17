@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import fs from "fs";
 import nodemailer from "nodemailer";
 import OpenAI from "openai";
+import pkg from "pg";
 
 dotenv.config();
+
+const { Pool } = pkg;
 
 const app = express();
 app.use(cors());
@@ -13,18 +15,22 @@ app.use(express.json());
 app.use(express.static("public"));
 
 /* ===============================
-   DATA STORAGE
+   DATABASE
 =============================== */
-const FILE = "./businesses.json";
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-let businesses = {};
-if (fs.existsSync(FILE)) {
-  businesses = JSON.parse(fs.readFileSync(FILE, "utf-8"));
-}
-
-function saveBusinesses() {
-  fs.writeFileSync(FILE, JSON.stringify(businesses, null, 2));
-}
+// Create table once
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS businesses (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    email TEXT,
+    info TEXT
+  )
+`);
 
 /* ===============================
    ADMIN AUTH
@@ -49,7 +55,13 @@ const openai = new OpenAI({
 app.post("/api/ask", async (req, res) => {
   try {
     const { businessId, question } = req.body;
-    const business = businesses[businessId];
+
+    const result = await pool.query(
+      "SELECT * FROM businesses WHERE id = $1",
+      [businessId]
+    );
+
+    const business = result.rows[0];
 
     if (!business) {
       return res.json({ fallback: true });
@@ -104,40 +116,43 @@ ANSWER STYLE:
 app.post("/api/fallback", async (req, res) => {
   try {
     const { businessId, email, question } = req.body;
-    const business = businesses[businessId];
+
+    const result = await pool.query(
+      "SELECT * FROM businesses WHERE id = $1",
+      [businessId]
+    );
+
+    const business = result.rows[0];
 
     if (!business) {
       return res.json({ success: false });
     }
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.log("EMAIL SKIPPED: Missing EMAIL_USER or EMAIL_PASS");
-  return res.json({ success: true });
-}
+      console.log("EMAIL SKIPPED: Missing credentials");
+      return res.json({ success: true });
+    }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
 
-await transporter.sendMail({
-  to: business.email,
-  from: process.env.EMAIL_USER,
-  subject: "New customer question from ANSWERO",
-  text: `
+    await transporter.sendMail({
+      to: business.email,
+      from: process.env.EMAIL_USER,
+      subject: "New customer question from ANSWERO",
+      text: `
 Customer email:
 ${email}
 
 Question:
 ${question}
-  `
-});
-
-res.json({ success: true });
-
+      `
+    });
 
     res.json({ success: true });
 
@@ -150,20 +165,37 @@ res.json({ success: true });
 /* ===============================
    ADMIN DASHBOARD
 =============================== */
-app.get("/admin/list-businesses", requireAdmin, (req, res) => {
-  res.json(businesses);
+app.get("/admin/list-businesses", requireAdmin, async (req, res) => {
+  const result = await pool.query("SELECT * FROM businesses");
+  const data = {};
+
+  result.rows.forEach(b => {
+    data[b.id] = {
+      name: b.name,
+      email: b.email,
+      info: b.info
+    };
+  });
+
+  res.json(data);
 });
 
-app.post("/admin/add-business", requireAdmin, (req, res) => {
+app.post("/admin/add-business", requireAdmin, async (req, res) => {
   const { id, name, email, info } = req.body;
 
-  businesses[id] = {
-    name: name || id,
-    email,
-    info
-  };
+  await pool.query(
+    `
+    INSERT INTO businesses (id, name, email, info)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (id)
+    DO UPDATE SET
+      name = EXCLUDED.name,
+      email = EXCLUDED.email,
+      info = EXCLUDED.info
+    `,
+    [id, name, email, info]
+  );
 
-  saveBusinesses();
   res.json({ success: true });
 });
 
