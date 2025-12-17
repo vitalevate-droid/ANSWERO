@@ -10,15 +10,14 @@
   style.innerHTML = `
     .answero-wrapper{display:flex;justify-content:center;width:100%}
     .answero-container{
-  max-width:520px;
-  width:100%;
-  margin:36px auto;
-  padding:0 12px;
-  font-family:Arial,sans-serif;
-  position:relative;
-  box-sizing:border-box
-}
-
+      max-width:520px;
+      width:100%;
+      margin:36px auto;
+      padding:0 12px;
+      font-family:Arial,sans-serif;
+      position:relative;
+      box-sizing:border-box
+    }
 
     .answero-info-btn{
       position:absolute;top:-14px;right:6px;
@@ -30,25 +29,23 @@
     }
 
     .answero-search{
-  display:flex;
-  background:#fff;
-  border-radius:999px;
-  padding:6px;
-  overflow:hidden;
-  box-shadow:0 10px 28px rgba(124,58,237,.18)
-}
-
+      display:flex;
+      background:#fff;
+      border-radius:999px;
+      padding:6px;
+      overflow:hidden;
+      box-shadow:0 10px 28px rgba(124,58,237,.18)
+    }
 
     .answero-search input{
-  flex:1;
-  border:none;
-  padding:14px 16px;
-  font-size:14px;
-  outline:none;
-  background:transparent;
-  border-radius:999px;
-}
-
+      flex:1;
+      border:none;
+      padding:14px 16px;
+      font-size:14px;
+      outline:none;
+      background:transparent;
+      border-radius:999px
+    }
 
     .answero-search button{
       background:#7c3aed;color:#fff;border:none;border-radius:999px;
@@ -65,15 +62,6 @@
     @keyframes pulse{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
 
     .answero-fallback p{margin:0 0 10px}
-    .answero-fallback input{
-      width:100%;padding:12px;margin-top:12px;
-      border-radius:12px;border:1px solid #ddd
-    }
-    .answero-fallback button{
-      margin-top:12px;width:100%;padding:12px;
-      border-radius:999px;background:#7c3aed;
-      border:none;color:#fff;font-weight:600;cursor:pointer
-    }
 
     .answero-branding{
       margin-top:18px;text-align:center;
@@ -134,12 +122,11 @@
       </div>
       <div id="legal">
         <p>ANSWERO complies with South Africa’s Protection of Personal Information Act (POPIA).</p>
-        <p>Email addresses are collected only to allow the business to respond directly to your enquiry.</p>
-        <p>No personal data is stored, sold, reused, or shared beyond this purpose.</p>
+        <p>This widget does not collect or store personal information.</p>
       </div>
       <div id="ai" style="display:none">
         <p>This service uses an AI system configured specifically for this business.</p>
-        <p>The AI is restricted to business-provided information and defers to the business when certainty is insufficient.</p>
+        <p>The AI is limited to business-provided information and may decline to answer when certainty is insufficient.</p>
       </div>
     </div>
   `;
@@ -185,29 +172,9 @@
     if(isFallback){
       answerBox.innerHTML=`
         <div class="answero-fallback">
-          <p><strong>We couldn’t confidently answer this.</strong></p>
-          <p>The business will reach out to you directly. Please leave your email below.</p>
-          <input id="answero-email" placeholder="Your email address">
-          <button id="answero-send">Send</button>
+          <p><strong>We don’t have enough information to answer this question.</strong></p>
+          <p>Please contact the business directly using their official contact details.</p>
         </div>`;
-      container.querySelector("#answero-send").onclick = () => {
-  answerBox.innerHTML =
-    "Thank you. The business will contact you soon.";
-
-  fetch(`${API_BASE}/api/fallback`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      businessId: BUSINESS_ID,
-      email: container.querySelector("#answero-email").value,
-      question: q
-    })
-  });
-};
-
-
-
-
     } else {
       answerBox.innerHTML=answerText||"Something went wrong.";
     }
